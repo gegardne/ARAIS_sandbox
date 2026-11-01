@@ -1,0 +1,1018 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ARAIS Lamp Sandbox</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a workbench. Sandbox and lit preview side by side, settings beneath, the cut sheet at the foot like material on the laser bed. */
+:root{
+  --bg:#efefec; --panel:#fafaf8; --ink:#1b1d20; --muted:#666970; --line:#d6d6d0; --chip:#e5e5e0;
+  --cut:#c72f1d; --score:#2350c8; --ok:#2c7a4c; --warn:#a86300;
+  --display:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131416; --panel:#1b1d20; --ink:#ebebe8; --muted:#9a9ca2; --line:#2e3135; --chip:#26292d;
+  --cut:#ff5d47; --score:#7096ff; --ok:#5cc28a; --warn:#e7a23a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131416; --panel:#1b1d20; --ink:#ebebe8; --muted:#9a9ca2; --line:#2e3135; --chip:#26292d;
+  --cut:#ff5d47; --score:#7096ff; --ok:#5cc28a; --warn:#e7a23a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1280px;margin:0 auto;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;padding-bottom:12px;border-bottom:1.5px solid var(--cut)}
+h1{margin:0;font-size:clamp(22px,3.4vw,34px);font-weight:800;font-stretch:118%;letter-spacing:-.01em;text-transform:uppercase;line-height:1}
+h1 span{color:var(--muted);font-weight:500;font-stretch:90%}
+.flow{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.work{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:12px;align-content:start;min-width:0}
+.panel h2{margin:0;font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;font-stretch:112%;display:flex;gap:8px;align-items:baseline;text-wrap:balance}
+.step{font-family:var(--mono);color:var(--cut);letter-spacing:0}
+.hint{color:var(--muted);font-size:12.5px;margin:0}
+#sand{width:100%;aspect-ratio:1;max-width:100%;display:block;border-radius:6px;touch-action:none;cursor:crosshair;background:var(--chip)}
+#three{width:100%;aspect-ratio:1;max-width:100%;border-radius:6px;overflow:hidden;background:#0b0b0c;touch-action:none;position:relative}
+#three canvas{display:block;width:100%!important;height:100%!important}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg{display:flex;flex-wrap:wrap;gap:0;justify-self:start;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:transparent;color:var(--ink);font:500 12.5px var(--display);padding:7px 10px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:500 12.5px var(--display);padding:7px 11px;border-radius:7px;cursor:pointer}
+.btn:hover,.seg button:hover{background:var(--chip)}
+.seg button[aria-pressed="true"]:hover{background:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.primary:hover{opacity:.9;background:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,label.file:focus-within{outline:2px solid var(--score);outline-offset:2px}
+label.file{position:relative;overflow:hidden}
+label.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.rows{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:118px minmax(0,1fr) 62px;align-items:center;gap:10px}
+.row>label{color:var(--muted);font-size:12.5px}
+.row output{font-family:var(--mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--ink);margin:0}
+.check{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.check input{accent-color:var(--ink);width:16px;height:16px}
+select,input[type=number]{font:500 12.5px var(--display);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 6px;width:100%}
+.settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.settings{grid-template-columns:minmax(0,1fr)}}
+.pathead{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;justify-content:space-between}
+.layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px}
+fieldset.layer{margin:0;border:1px solid var(--line);border-radius:8px;padding:10px 12px 12px;display:grid;gap:8px;align-content:start;min-width:0}
+fieldset.layer legend{padding:0 4px;font-size:12.5px;font-weight:700;font-stretch:108%;display:flex;align-items:center;gap:7px}
+fieldset.layer legend input{accent-color:var(--ink);width:15px;height:15px;margin:0}
+fieldset.layer[disabled] .row,fieldset.layer[disabled] .check,fieldset.layer[disabled] .hint{opacity:.42}
+.layer .row{grid-template-columns:104px minmax(0,1fr) 56px}
+.rows.simple{max-width:640px}
+.order{font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:400}
+.tablewrap{overflow:auto;max-height:280px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:500;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+td.num{font-family:var(--mono);text-align:right}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;border:1px solid currentColor}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)}
+#warnings{margin:0;padding-left:18px;font-size:12.5px;color:var(--warn)}
+#warnings li.ok{color:var(--ok);list-style:none;margin-left:-18px}
+.sheethead{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+.sheetbox{overflow-x:auto;background:#fdfdfb;border-radius:6px;border:1px solid var(--line);padding:10px}
+.sheetbox svg{display:block;width:100%;min-width:560px;height:auto}
+.sheetbox svg g{stroke-width:1px}
+.sheetbox svg *{vector-effect:non-scaling-stroke}
+.mono{font-family:var(--mono);font-size:12px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.show{opacity:1}
+.viewbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.viewbar .row{grid-template-columns:auto minmax(110px,1fr) 52px;flex:1 1 260px}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>ARAIS Lamp Sandbox <span>v0.5</span></h1>
+    <div class="flow">sculpt the site → place the net → pick a pattern → cut sheet (SVG, mm)</div>
+  </header>
+
+  <div class="work">
+    <section class="panel" aria-labelledby="h-sand">
+      <h2 id="h-sand"><span class="step">1</span>Sculpt the site</h2>
+      <div class="tools">
+        <div class="seg" role="group" aria-label="Sandbox tool" id="toolSeg">
+          <button type="button" data-tool="raise" aria-pressed="true">Build up</button>
+          <button type="button" data-tool="dig" aria-pressed="false">Dig</button>
+          <button type="button" data-tool="smooth" aria-pressed="false">Smooth</button>
+          <button type="button" data-tool="move" aria-pressed="false">Move net</button>
+        </div>
+        <div class="seg" role="group" aria-label="Draw a line feature">
+          <button type="button" data-tool="river" aria-pressed="false">Carve river</button>
+          <button type="button" data-tool="ridge" aria-pressed="false">Raise ridge</button>
+        </div>
+        <div class="seg" role="group" aria-label="Place a shape">
+          <button type="button" data-tool="tetra" aria-pressed="false">Tetra</button>
+          <button type="button" data-tool="cube" aria-pressed="false">Cube</button>
+          <button type="button" data-tool="dome" aria-pressed="false">Dome</button>
+        </div>
+      </div>
+      <canvas id="sand" aria-label="Sandbox: drag to sculpt the terrain"></canvas>
+      <div class="rows">
+        <div class="row"><label for="brush">Brush size</label><input type="range" id="brush" min="0.03" max="0.2" step="0.005" value="0.08"><output id="brushOut"></output></div>
+        <div class="row"><label for="lineDepth">River / ridge depth</label><input type="range" id="lineDepth" min="0.04" max="0.4" step="0.01" value="0.16"><output id="lineDepthOut"></output></div>
+        <div class="row"><label for="netRot">Net rotation</label><input type="range" id="netRot" min="0" max="360" step="1" value="0"><output id="netRotOut"></output></div>
+        <div class="row"><label for="netZoom">Net size on site</label><input type="range" id="netZoom" min="0.4" max="1.2" step="0.01" value="0.8"><output id="netZoomOut"></output></div>
+      </div>
+      <div class="tools">
+        <button type="button" class="btn" id="randomBtn">New random site</button>
+        <button type="button" class="btn" id="flatBtn">Flatten</button>
+        <label class="btn file">Load heightmap image<input type="file" id="hmFile" accept="image/*"></label>
+      </div>
+      <p class="hint">Drag to build up or dig. Carve river and Raise ridge draw a narrow channel or crest along your stroke (width follows brush size). Shapes stamp a hill where you tap. The white outline is the unfolded lamp: each face reads the terrain underneath it.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="h-view">
+      <h2 id="h-view"><span class="step">2</span>See it lit</h2>
+      <div id="three" aria-label="3D preview of the lamp in a room. Drag to orbit."></div>
+      <div class="viewbar">
+        <div class="row"><label for="bulb">Bulb emitter</label><input type="range" id="bulb" min="1" max="30" step="1" value="3"><output id="bulbOut"></output></div>
+        <label class="check"><input type="checkbox" id="roomLights">Room lights</label>
+        <label class="check"><input type="checkbox" id="translucent">Translucent sheet</label>
+      </div>
+      <p class="hint">A small emitter gives crisp shadows; slide it up to see what a frosted bulb does to the pattern. Drag to orbit, scroll or pinch to zoom.</p>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="h-pat">
+    <div class="pathead">
+      <h2 id="h-pat">Shape and pattern</h2>
+      <p class="hint">Flowlines run downhill from each contour. Slopes facing the light get wide slots; slopes in shadow get thin ones or none.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Lamp shape" id="solidSeg">
+      <button type="button" data-solid="tetra" aria-pressed="false">Tetrahedron</button>
+      <button type="button" data-solid="cube" aria-pressed="true">Cube</button>
+      <button type="button" data-solid="octa" aria-pressed="false">Octahedron</button>
+      <button type="button" data-solid="dodeca" aria-pressed="false">Dodecahedron</button>
+      <button type="button" data-solid="icosa" aria-pressed="false">Icosahedron</button>
+    </div>
+    <div class="rows simple">
+      <div class="row"><label for="levels">Contours</label><input type="range" id="levels" min="4" max="24" step="1" value="12"><output id="levelsOut"></output></div>
+      <div class="row"><label for="light">Light from</label><input type="range" id="light" min="0" max="359" step="1" value="315"><output id="lightOut"></output></div>
+      <div class="row"><label for="density">Line density</label><input type="range" id="density" min="0" max="1" step="0.05" value="0.5"><output id="densityOut"></output></div>
+      <div class="row"><label for="length">Line length</label><input type="range" id="length" min="0" max="1" step="0.05" value="0.4"><output id="lengthOut"></output></div>
+    </div>
+  </section>
+
+  <div class="settings">
+
+    <section class="panel" aria-labelledby="h-lamp">
+      <h2 id="h-lamp">Lamp and material</h2>
+      <div class="rows">
+        <div class="row"><label for="size">Overall size</label><input type="range" id="size" min="120" max="420" step="5" value="240"><output id="sizeOut"></output></div>
+        <div class="row"><label for="thick">Sheet thickness</label><input type="range" id="thick" min="0.3" max="3" step="0.1" value="0.5"><output id="thickOut"></output></div>
+        <div class="row"><label for="margin">Edge margin</label><input type="range" id="margin" min="4" max="15" step="0.5" value="7"><output id="marginOut"></output></div>
+        <div class="row"><label for="mount">Socket hole Ø</label><input type="range" id="mount" min="20" max="60" step="0.5" value="42"><output id="mountOut"></output></div>
+        <div class="row"><label for="bedW">Sheet W × H</label><div style="display:flex;gap:6px"><input type="number" id="bedW" value="720" min="100" step="10" aria-label="Sheet width in mm"><input type="number" id="bedH" value="540" min="100" step="10" aria-label="Sheet height in mm"></div><span class="mono" style="text-align:right">mm</span></div>
+      </div>
+      <label class="check"><input type="checkbox" id="openBottom">Leave the bottom face open (bulb access)</label>
+      <p class="hint">Socket hole is a placeholder: set it to the pendant kit's shade ring once we pick one. Web between cuts is held at 2× thickness, minimum 1.5 mm.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="h-check">
+      <h2 id="h-check">Checks</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Face</th><th style="text-align:right">Cuts</th><th style="text-align:right">Open</th><th>Status</th></tr></thead>
+        <tbody id="checkBody"></tbody>
+      </table></div>
+      <ul id="warnings"></ul>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="h-sheet">
+    <div class="sheethead">
+      <h2 id="h-sheet"><span class="step">3</span>Cut sheet</h2>
+      <div class="tools">
+        <button type="button" class="btn primary" id="svgBtn">Download cut sheet (SVG)</button>
+        <button type="button" class="btn" id="jsonBtn">Download design (JSON)</button>
+      </div>
+    </div>
+    <div class="legend"><span><i style="border-color:#ff0000"></i>cut</span><span><i style="border-color:#0000ff;border-top-style:dashed"></i>score / fold</span><span><i style="border-color:#000"></i>engrave: seam numbers</span><span id="sheetSize" class="mono"></span></div>
+    <div class="sheetbox" id="sheet"></div>
+    <p class="hint">Glue each numbered tab under the edge with the same number. Holes and slots are on their own layer so they cut before the outline. Units are millimetres.</p>
+  </section>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+
+/* ---------- heightfield ---------- */
+const N = 128;
+let H = new Float32Array(N * N);
+const stamps = [];
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function clampH(){ for (let k = 0; k < H.length; k++) H[k] = H[k] < 0 ? 0 : H[k] > 1 ? 1 : H[k]; }
+function randomTerrain(seed){
+  const r = rng(seed); H.fill(0.3);
+  const n = 5 + Math.floor(r() * 4);
+  for (let k = 0; k < n; k++){
+    const cx = 0.15 + r() * 0.7, cy = 0.15 + r() * 0.7, s = 0.05 + r() * 0.11, a = (r() < 0.3 ? -1 : 1) * (0.25 + r() * 0.4);
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
+      const x = (i + .5) / N - cx, y = (j + .5) / N - cy;
+      H[j * N + i] += a * Math.exp(-(x * x + y * y) / (2 * s * s));
+    }
+  }
+  clampH(); stamps.length = 0;
+}
+function sampleH(x, y){
+  const fx = x * N - .5, fy = y * N - .5;
+  const i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
+  const g = (a, b) => { a = a < 0 ? 0 : a > N - 1 ? N - 1 : a; b = b < 0 ? 0 : b > N - 1 ? N - 1 : b; return H[b * N + a]; };
+  return (g(i, j) * (1 - tx) + g(i + 1, j) * tx) * (1 - ty) + (g(i, j + 1) * (1 - tx) + g(i + 1, j + 1) * tx) * ty;
+}
+// Smoothed copy used by every pattern (contours, gradients), so noise doesn't make strokes jitter.
+let Hs = new Float32Array(N * N);
+function smoothField(sig){
+  if (sig <= 0){ Hs.set(H); return; }
+  const rad = Math.ceil(sig * 3), ker = [];
+  let sum = 0; for (let k = -rad; k <= rad; k++){ const w = Math.exp(-k * k / (2 * sig * sig)); ker.push(w); sum += w; }
+  for (let k = 0; k < ker.length; k++) ker[k] /= sum;
+  const tmp = new Float32Array(N * N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){ let a = 0; for (let k = -rad; k <= rad; k++){ const ii = Math.min(N - 1, Math.max(0, i + k)); a += H[j * N + ii] * ker[k + rad]; } tmp[j * N + i] = a; }
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){ let a = 0; for (let k = -rad; k <= rad; k++){ const jj = Math.min(N - 1, Math.max(0, j + k)); a += tmp[jj * N + i] * ker[k + rad]; } Hs[j * N + i] = a; }
+}
+function sampleS(x, y){
+  const fx = x * N - .5, fy = y * N - .5;
+  const i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
+  const g = (a, b) => { a = a < 0 ? 0 : a > N - 1 ? N - 1 : a; b = b < 0 ? 0 : b > N - 1 ? N - 1 : b; return Hs[b * N + a]; };
+  return (g(i, j) * (1 - tx) + g(i + 1, j) * tx) * (1 - ty) + (g(i, j + 1) * (1 - tx) + g(i + 1, j + 1) * tx) * ty;
+}
+
+/* ---------- parameters ---------- */
+const P = {};
+const compass = v => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'].at(Math.round(v / 45) % 8);
+const fmt = {
+  brush: v => (v * 100).toFixed(0) + '%', netRot: v => v + '°', netZoom: v => (v * 100).toFixed(0) + '%',
+  lineDepth: v => (v * 100).toFixed(0) + '%', bulb: v => v + ' mm',
+  levels: v => v, light: v => compass(v) + ' ' + v + '°', density: v => v < 0.34 ? 'open' : v < 0.67 ? 'medium' : 'dense', length: v => v < 0.34 ? 'short' : v < 0.67 ? 'medium' : 'long',
+  size: v => v + ' mm', thick: v => v + ' mm', margin: v => v + ' mm', mount: v => v + ' mm'
+};
+const BOOLS = ['openBottom'];
+// Fixed pattern settings (tuned once, not exposed to users)
+const FIXED = { smooth: 1.5, relief: 60, wMin: 0.9, wMax: 3, contrast: 1.4, minSlope: 0.12, taper: true };
+const net = { cx: 0.5, cy: 0.5, rot: 0, fs: 0.2 };
+let solid = 'cube';
+function readParams(){
+  for (const k of Object.keys(fmt)){ const el = $(k); P[k] = parseFloat(el.value); const o = $(k + 'Out'); if (o) o.textContent = fmt[k](P[k]); }
+  BOOLS.forEach(k => { P[k] = $(k).checked; });
+  Object.assign(P, FIXED);
+  P.seed = 7.5 - 4.5 * P.density;           // seed spacing along contours, mm
+  P.gap = 2.2 - 0.7 * P.density;            // clear gap between lines, mm
+  P.flowLen = 10 + 70 * P.length;           // max flowline length, mm
+  P.bedW = parseFloat($('bedW').value) || 600; P.bedH = parseFloat($('bedH').value) || 450;
+  P.web = Math.max(1.5, 2 * P.thick);
+  P.minHole = Math.max(2, P.thick);
+  P.cutMin = Math.max(P.thick, 0.8);
+  net.rot = P.netRot * Math.PI / 180;
+  P.solid = solid;
+}
+
+/* ---------- solids and nets ---------- */
+// Each solid is built from its vertices, its faces found as a convex hull, then unfolded into a net
+// by attaching faces edge to edge (greedy, compact, never overlapping). Fold edges and glue seams fall out of that.
+const PHI = (1 + Math.sqrt(5)) / 2;
+const SOLIDS = {
+  tetra:  { name: 'Tetrahedron',  verts: () => [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]] },
+  cube:   { name: 'Cube',         verts: () => { const v = []; for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) v.push([x, y, z]); return v; } },
+  octa:   { name: 'Octahedron',   verts: () => [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]] },
+  dodeca: { name: 'Dodecahedron', verts: () => { const v = []; for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) v.push([x, y, z]);
+    for (const a of [-1, 1]) for (const b of [-1, 1]) v.push([0, a / PHI, b * PHI], [a / PHI, b * PHI, 0], [a * PHI, 0, b / PHI]); return v; } },
+  icosa:  { name: 'Icosahedron',  verts: () => { const v = []; for (const a of [-1, 1]) for (const b of [-1, 1]) v.push([0, a, b * PHI], [a, b * PHI, 0], [a * PHI, 0, b]); return v; } }
+};
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const norm3 = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+function hullFaces(V){
+  const faces = [], seen = new Set(), n = V.length, eps = 1e-6;
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) for (let k = j + 1; k < n; k++){
+    let nn = cross(sub(V[j], V[i]), sub(V[k], V[i])); if (Math.hypot(...nn) < eps) continue; nn = norm3(nn);
+    let d = dot3(nn, V[i]), pos = 0, neg = 0; const on = [];
+    for (let t = 0; t < n; t++){ const s = dot3(nn, V[t]) - d; if (s > eps) pos++; else if (s < -eps) neg++; else on.push(t); }
+    if (pos && neg) continue;
+    if (pos){ nn = nn.map(x => -x); d = -d; }
+    const key = on.slice().sort((a, b) => a - b).join(','); if (seen.has(key)) continue; seen.add(key);
+    const c = on.reduce((a, t) => [a[0] + V[t][0] / on.length, a[1] + V[t][1] / on.length, a[2] + V[t][2] / on.length], [0, 0, 0]);
+    const u = norm3(sub(V[on[0]], c)), w = cross(nn, u);
+    on.sort((a, b) => { const pa = sub(V[a], c), pb = sub(V[b], c); return Math.atan2(dot3(pa, w), dot3(pa, u)) - Math.atan2(dot3(pb, w), dot3(pb, u)); });
+    faces.push({ vs: on, n: nn });
+  }
+  return faces;
+}
+function rotateTo(a, b){ // rotation matrix taking unit vector a onto b
+  const v = cross(a, b), c = dot3(a, b);
+  if (c < -0.9999){ return [[1, 0, 0], [0, -1, 0], [0, 0, -1]]; }
+  const k = 1 / (1 + c);
+  return [[v[0] * v[0] * k + c, v[0] * v[1] * k - v[2], v[0] * v[2] * k + v[1]],
+          [v[1] * v[0] * k + v[2], v[1] * v[1] * k + c, v[1] * v[2] * k - v[0]],
+          [v[2] * v[0] * k - v[1], v[2] * v[1] * k + v[0], v[2] * v[2] * k + c]];
+}
+const mulM = (M, p) => [dot3(M[0], p), dot3(M[1], p), dot3(M[2], p)];
+function polyArea(p){ let a = 0; for (let i = 0; i < p.length; i++){ const q = p[(i + 1) % p.length]; a += p[i][0] * q[1] - q[0] * p[i][1]; } return a / 2; }
+function centroid2(p){ let x = 0, y = 0; for (const q of p){ x += q[0]; y += q[1]; } return [x / p.length, y / p.length]; }
+function convexOverlap(A, B){ // separating axis test on slightly shrunk convex polygons
+  const shrink = (P, s) => { const c = centroid2(P); return P.map(q => [c[0] + (q[0] - c[0]) * s, c[1] + (q[1] - c[1]) * s]); };
+  A = shrink(A, 0.995); B = shrink(B, 0.995);
+  for (const P of [A, B]) for (let i = 0; i < P.length; i++){
+    const p = P[i], q = P[(i + 1) % P.length], ax = -(q[1] - p[1]), ay = q[0] - p[0];
+    let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+    for (const r of A){ const d = r[0] * ax + r[1] * ay; a0 = Math.min(a0, d); a1 = Math.max(a1, d); }
+    for (const r of B){ const d = r[0] * ax + r[1] * ay; b0 = Math.min(b0, d); b1 = Math.max(b1, d); }
+    if (a1 <= b0 + 1e-9 || b1 <= a0 + 1e-9) return false;
+  }
+  return true;
+}
+function bboxOf(polys){ let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const P of polys) for (const q of P){ x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); } return [x0, y0, x1, y1]; }
+function buildSolid(type, openBottom){
+  let V = SOLIDS[type].verts();
+  let edge = Infinity; for (let i = 0; i < V.length; i++) for (let j = i + 1; j < V.length; j++) edge = Math.min(edge, Math.hypot(...sub(V[i], V[j])));
+  V = V.map(p => p.map(x => x / edge));
+  let faces = hullFaces(V);
+  // stand the solid on a face: the face pointing most upward becomes horizontal, carrying the socket
+  let top = 0; faces.forEach((f, i) => { if (f.n[1] > faces[top].n[1]) top = i; });
+  const M = rotateTo(faces[top].n, [0, 1, 0]);
+  V = V.map(p => mulM(M, p)); faces.forEach(f => { f.n = mulM(M, f.n); });
+  let bottom = -1; faces.forEach((f, i) => { if (f.n[1] < -0.999) bottom = i; });
+  const skip = new Set(openBottom && bottom >= 0 ? [bottom] : []);
+  const local = fi => { const f = faces[fi], v0 = V[f.vs[0]], e1 = norm3(sub(V[f.vs[1]], v0)), e2 = cross(e1, f.n); return f.vs.map(vi => { const d = sub(V[vi], v0); return [dot3(d, e1), dot3(d, e2)]; }); };
+  const ekey = (a, b) => a < b ? a + '-' + b : b + '-' + a;
+  const edgeFaces = new Map();
+  faces.forEach((f, fi) => { if (skip.has(fi)) return; f.vs.forEach((a, k) => { const b = f.vs[(k + 1) % f.vs.length], kk = ekey(a, b); if (!edgeFaces.has(kk)) edgeFaces.set(kk, []); edgeFaces.get(kk).push(fi); }); });
+  const placed = new Map([[top, local(top)]]), folds = new Set();
+  const want = faces.length - skip.size;
+  while (placed.size < want){
+    let best = null;
+    for (const [pi, pp] of placed){
+      const pf = faces[pi];
+      for (let k = 0; k < pf.vs.length; k++){
+        const a = pf.vs[k], b = pf.vs[(k + 1) % pf.vs.length], kk = ekey(a, b);
+        for (const qi of edgeFaces.get(kk) || []){
+          if (placed.has(qi)) continue;
+          const L = local(qi), qf = faces[qi];
+          const la = L[qf.vs.indexOf(a)], lb = L[qf.vs.indexOf(b)], Pa = pp[k], Pb = pp[(k + 1) % pp.length];
+          const th = Math.atan2(Pb[1] - Pa[1], Pb[0] - Pa[0]) - Math.atan2(lb[1] - la[1], lb[0] - la[0]), c = Math.cos(th), s = Math.sin(th);
+          const cand = L.map(q => { const dx = q[0] - la[0], dy = q[1] - la[1]; return [Pa[0] + dx * c - dy * s, Pa[1] + dx * s + dy * c]; });
+          let bad = false; for (const P of placed.values()) if (convexOverlap(P, cand)){ bad = true; break; }
+          if (bad) continue;
+          const bb = bboxOf([...placed.values(), cand]), w = bb[2] - bb[0], h = bb[3] - bb[1];
+          const score = w * h + 0.01 * Math.max(w, h);
+          if (!best || score < best.score) best = { score, qi, cand, kk };
+        }
+      }
+    }
+    if (!best) break;
+    placed.set(best.qi, best.cand); folds.add(best.kk);
+  }
+  // turn the whole net to the smallest landscape bounding box
+  let bestA = 0, bestS = Infinity;
+  for (let d = 0; d < 180; d += 2){
+    const a = d * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    const bb = bboxOf([...placed.values()].map(P => P.map(q => [q[0] * c - q[1] * s, q[0] * s + q[1] * c])));
+    const w = bb[2] - bb[0], h = bb[3] - bb[1], sc = w * h * (h > w ? 1.05 : 1);
+    if (sc < bestS - 1e-9){ bestS = sc; bestA = a; }
+  }
+  const c = Math.cos(bestA), s = Math.sin(bestA);
+  for (const [k, P] of placed) placed.set(k, P.map(q => [q[0] * c - q[1] * s, q[0] * s + q[1] * c]));
+  const bb = bboxOf([...placed.values()]);
+  const out = []; let num = 1;
+  for (const [fi, P0] of placed){
+    const P = P0.map(q => [q[0] - bb[0], q[1] - bb[1]]), fb = bboxOf([P]);
+    const f = faces[fi];
+    out.push({
+      fi, vids: f.vs, v3: f.vs.map(vi => V[vi]), poly2: P,
+      origin: [fb[0], fb[1]], dim: Math.max(fb[2] - fb[0], fb[3] - fb[1]), cen2: centroid2(P),
+      top: fi === top, bottom: fi === bottom, name: fi === top ? 'Top' : fi === bottom ? 'Bottom' : 'F' + (num++)
+    });
+  }
+  const inr = dot3(faces[top].n, V[faces[top].vs[0]]);
+  return { type, faces: out, folds, w: bb[2] - bb[0], h: bb[3] - bb[1], inr, circR: Math.hypot(...V[0]), complete: placed.size === want, ekey };
+}
+let SOL = null;
+const activeFaces = () => SOL.faces;
+const edgeMM = () => P.size / (2 * SOL.circR);
+// local face millimetres → net units, and net units ↔ site (0–1) coordinates
+const faceToNet = (f, x, y) => { const E = edgeMM(); return [f.origin[0] + x / E, f.origin[1] + y / E]; };
+const faceLocalPoly = f => { const E = edgeMM(); return f.poly2.map(q => [(q[0] - f.origin[0]) * E, (q[1] - f.origin[1]) * E]); };
+function netToSand(u, v){
+  const dx = (u - SOL.w / 2) * net.fs, dy = (v - SOL.h / 2) * net.fs, c = Math.cos(net.rot), s = Math.sin(net.rot);
+  return [net.cx + dx * c - dy * s, net.cy + dx * s + dy * c];
+}
+function sandToNet(x, y){
+  const dx = (x - net.cx) / net.fs, dy = (y - net.cy) / net.fs, c = Math.cos(-net.rot), s = Math.sin(-net.rot);
+  return [dx * c - dy * s + SOL.w / 2, dx * s + dy * c + SOL.h / 2];
+}
+const faceHeight = (f, x, y) => { const q = faceToNet(f, x, y), p = netToSand(q[0], q[1]); return sampleS(p[0], p[1]); };
+function pointInPoly(P, x, y){ let inside = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++){ const a = P[i], b = P[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside; } return inside; }
+const level = k => (k + 1) / (P.levels + 1);
+
+/* ---------- contours ---------- */
+const MS = {1:[[3,0]],2:[[0,1]],3:[[3,1]],4:[[1,2]],5:[[3,0],[1,2]],6:[[0,2]],7:[[3,2]],8:[[2,3]],9:[[0,2]],10:[[0,1],[2,3]],11:[[1,2]],12:[[1,3]],13:[[0,1]],14:[[3,0]]};
+function march(g, W, Hh, lv){
+  const segs = [];
+  for (let j = 0; j < Hh - 1; j++) for (let i = 0; i < W - 1; i++){
+    const v0 = g[j * W + i], v1 = g[j * W + i + 1], v2 = g[(j + 1) * W + i + 1], v3 = g[(j + 1) * W + i];
+    const c = (v0 > lv ? 1 : 0) | (v1 > lv ? 2 : 0) | (v2 > lv ? 4 : 0) | (v3 > lv ? 8 : 0);
+    if (c === 0 || c === 15) continue;
+    const t = (a, b) => (lv - a) / (b - a);
+    const E = e => e === 0 ? [i + t(v0, v1), j] : e === 1 ? [i + 1, j + t(v1, v2)] : e === 2 ? [i + 1 - t(v2, v3), j + 1] : [i, j + 1 - t(v3, v0)];
+    for (const [a, b] of MS[c]){ const p = E(a), q = E(b); segs.push([p[0], p[1], q[0], q[1]]); }
+  }
+  return segs;
+}
+function joinSegs(segs){
+  const key = (x, y) => Math.round(x * 1e4) + ',' + Math.round(y * 1e4);
+  const map = new Map();
+  segs.forEach((s, k) => { for (const kk of [key(s[0], s[1]), key(s[2], s[3])]){ if (!map.has(kk)) map.set(kk, []); map.get(kk).push(k); } });
+  const used = new Uint8Array(segs.length), lines = [];
+  for (let k = 0; k < segs.length; k++){
+    if (used[k]) continue; used[k] = 1;
+    const s = segs[k]; const line = [[s[0], s[1]], [s[2], s[3]]];
+    for (const fwd of [true, false]){
+      for (let guard = 0; guard < 200000; guard++){
+        const end = fwd ? line[line.length - 1] : line[0], ke = key(end[0], end[1]);
+        const cand = map.get(ke) || []; let found = -1;
+        for (const c of cand){ if (!used[c]){ found = c; break; } }
+        if (found < 0) break;
+        used[found] = 1; const t = segs[found];
+        const next = key(t[0], t[1]) === ke ? [t[2], t[3]] : [t[0], t[1]];
+        if (fwd) line.push(next); else line.unshift(next);
+      }
+    }
+    lines.push(line);
+  }
+  return lines;
+}
+
+/* ---------- perforation per face ---------- */
+const MF = 64;
+// Spatial hash of every cut placed so far on a face: points with a radius (half the slot width or hole radius).
+function makeGrid(cell){
+  const map = new Map(); let maxR = 0;
+  const key = (i, j) => i * 100003 + j;
+  return {
+    add(x, y, r){ const k = key(Math.floor(x / cell), Math.floor(y / cell)); let a = map.get(k); if (!a){ a = []; map.set(k, a); } a.push(x, y, r); if (r > maxR) maxR = r; },
+    hit(x, y, r, gap){
+      const reach = r + gap + maxR, n = Math.ceil(reach / cell), ci = Math.floor(x / cell), cj = Math.floor(y / cell);
+      for (let dj = -n; dj <= n; dj++) for (let di = -n; di <= n; di++){
+        const a = map.get(key(ci + di, cj + dj)); if (!a) continue;
+        for (let t = 0; t < a.length; t += 3){ const dx = a[t] - x, dy = a[t + 1] - y, lim = a[t + 2] + r + gap; if (dx * dx + dy * dy < lim * lim) return true; }
+      }
+      return false;
+    }
+  };
+}
+// A centreline with a width at each point becomes a closed slot outline with round ends.
+function strokePoly(pts, ws){
+  const n = pts.length, nl = [], tg = [];
+  for (let i = 0; i < n; i++){
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)];
+    let tx = b[0] - a[0], ty = b[1] - a[1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+    tg.push([tx, ty]); nl.push([-ty, tx]);
+  }
+  const out = [];
+  for (let i = 0; i < n; i++) out.push([pts[i][0] + nl[i][0] * ws[i] / 2, pts[i][1] + nl[i][1] * ws[i] / 2]);
+  const cap = (i, back) => {
+    const r = ws[i] / 2, sgn = back ? -1 : 1;
+    for (let k = 1; k < 6; k++){ const ph = k / 6 * Math.PI, cs = Math.cos(ph), sn = Math.sin(ph);
+      out.push([pts[i][0] + r * (cs * nl[i][0] * sgn + sn * tg[i][0] * sgn), pts[i][1] + r * (cs * nl[i][1] * sgn + sn * tg[i][1] * sgn)]); }
+  };
+  cap(n - 1, false);
+  for (let i = n - 1; i >= 0; i--) out.push([pts[i][0] - nl[i][0] * ws[i] / 2, pts[i][1] - nl[i][1] * ws[i] / 2]);
+  cap(0, true);
+  return out;
+}
+function resample(line, step){
+  const out = [line[0]]; let need = step;
+  for (let i = 1; i < line.length; i++){
+    const a = line[i - 1], b = line[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); let at = 0;
+    while (L - at >= need){ at += need; need = step; out.push([a[0] + (b[0] - a[0]) * at / L, a[1] + (b[1] - a[1]) * at / L]); }
+    need -= L - at;
+  }
+  return out;
+}
+function computeFace(f){
+  const E = edgeMM(), D = f.dim * E, W = MF + 1, g = new Float32Array(W * W);
+  for (let j = 0; j < W; j++) for (let i = 0; i < W; i++) g[j * W + i] = faceHeight(f, i / MF * D, j / MF * D);
+  const m = P.margin, mountR = f.top ? P.mount / 2 : 0;
+  const poly = faceLocalPoly(f), cen = centroid2(poly), area = Math.abs(polyArea(poly));
+  const edgesIn = poly.map((p, i) => { const q = poly[(i + 1) % poly.length]; let nx = -(q[1] - p[1]), ny = q[0] - p[0]; const l = Math.hypot(nx, ny); nx /= l; ny /= l; if ((cen[0] - p[0]) * nx + (cen[1] - p[1]) * ny < 0){ nx = -nx; ny = -ny; } return [p[0], p[1], nx, ny]; });
+  const holes = [], slots = []; let open = 0;
+  const grid = makeGrid(6);
+  const gap = P.web;
+
+  // terrain helpers in face millimetres
+  const hAt = (x, y) => faceHeight(f, x, y);
+  const e = Math.max(0.25, 0.6 * E / (N * net.fs)); // half a heightfield cell, in mm
+  const gradAt = (x, y) => [(hAt(x + e, y) - hAt(x - e, y)) / (2 * e), (hAt(x, y + e) - hAt(x, y - e)) / (2 * e)];
+  const mags = [], cell = D / MF;
+  for (let j = 1; j < MF; j++) for (let i = 1; i < MF; i++){
+    const gx = (g[j * W + i + 1] - g[j * W + i - 1]) / (2 * cell), gy = (g[(j + 1) * W + i] - g[(j - 1) * W + i]) / (2 * cell);
+    mags.push(Math.hypot(gx, gy));
+  }
+  mags.sort((a, b) => a - b);
+  const median = mags[mags.length >> 1] || 0;
+  const flat = Math.max(1e-5, P.minSlope * median);
+  const cr = Math.cos(net.rot), sr = Math.sin(net.rot);
+  const la = P.light * Math.PI / 180, Lx = Math.sin(la), Ly = -Math.cos(la), alt = Math.PI / 4;
+  const widthAt = (gx, gy) => {
+    const sx = (gx * cr - gy * sr) * P.relief, sy = (gx * sr + gy * cr) * P.relief; // gradient in site frame, exaggerated
+    const nlen = Math.hypot(sx, sy, 1);
+    let t = (-sx * Lx * Math.cos(alt) - sy * Ly * Math.cos(alt) + Math.sin(alt)) / nlen; // Lambert shading
+    t = Math.min(1, Math.max(0, t));
+    return P.wMin + (P.wMax - P.wMin) * Math.pow(t, P.contrast);
+  };
+  const inside = (x, y, r) => edgesIn.every(([px, py, nx, ny]) => (x - px) * nx + (y - py) * ny >= m + r) && !(mountR && Math.hypot(x - cen[0], y - cen[1]) < mountR + gap + r);
+  // Emit runs of a stroke wide enough to cut; register them so later strokes keep clear.
+  const emit = (pts, ws) => {
+    let run = [], rw = [];
+    const flush = () => {
+      if (run.length >= 2){
+        let len = 0; for (let i = 1; i < run.length; i++) len += Math.hypot(run[i][0] - run[i - 1][0], run[i][1] - run[i - 1][1]);
+        if (len >= 1){
+          slots.push(strokePoly(run, rw));
+          for (let i = 0; i < run.length; i++){ grid.add(run[i][0], run[i][1], rw[i] / 2); if (i) open += rw[i] * Math.hypot(run[i][0] - run[i - 1][0], run[i][1] - run[i - 1][1]); }
+          open += Math.PI * (rw[0] * rw[0] + rw[rw.length - 1] * rw[rw.length - 1]) / 8;
+        }
+      }
+      run = []; rw = [];
+    };
+    for (let i = 0; i < pts.length; i++){ if (ws[i] >= P.cutMin){ run.push(pts[i]); rw.push(ws[i]); } else flush(); }
+    flush();
+  };
+
+  // contours shared by all layers, highest level first
+  const contours = [];
+  for (let k = P.levels - 1; k >= 0; k--){
+    for (const line of joinSegs(march(g, W, W, level(k)))){
+      const pts = line.map(p => [p[0] / MF * D, p[1] / MF * D]);
+      let len = 0; for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+      if (len > 3) contours.push({ k, pts, len });
+    }
+  }
+
+  // Flowlines: seeded on contours, traced downslope (Samsonov / Imhof hachures)
+  {
+    const step = 0.8, maxSteps = Math.ceil(P.flowLen / step), cos45 = Math.SQRT1_2;
+    for (const ct of contours){
+      const seeds = resample(ct.pts, P.seed);
+      for (const sd of seeds){
+        let [x, y] = sd;
+        let gr = gradAt(x, y), mag = Math.hypot(gr[0], gr[1]);
+        if (mag < flat) continue;
+        let w = widthAt(gr[0], gr[1]);
+        if (!inside(x, y, w / 2) || grid.hit(x, y, w / 2, P.gap)) continue;
+        const pts = [[x, y]], ws = [w]; let prev = null;
+        for (let st = 0; st < maxSteps; st++){
+          gr = gradAt(x, y); mag = Math.hypot(gr[0], gr[1]);
+          if (mag < flat) break;
+          const dx = -gr[0] / mag, dy = -gr[1] / mag;
+          if (prev && dx * prev[0] + dy * prev[1] < cos45) break;
+          const nx = x + dx * step, ny = y + dy * step;
+          const ng = gradAt(nx, ny), nw = widthAt(ng[0], ng[1]);
+          if (!inside(nx, ny, nw / 2)) break;
+          if (grid.hit(nx, ny, nw / 2, P.gap)) break;
+          x = nx; y = ny; prev = [dx, dy]; pts.push([x, y]); ws.push(nw);
+        }
+        if (pts.length < 4) continue;
+        if (P.taper) for (let i = 0; i < ws.length; i++) ws[i] *= 1 - 0.6 * i / (ws.length - 1);
+        emit(pts, ws);
+      }
+    }
+  }
+  return { holes, slots, open: open / area, mountR, cen };
+}
+
+/* ---------- sandbox canvas ---------- */
+const sand = $('sand'), sctx = sand.getContext('2d');
+const off = document.createElement('canvas'); off.width = off.height = N;
+const octx = off.getContext('2d'), img = octx.createImageData(N, N);
+let results = [];
+let tool = 'raise';
+const pointer = { down: false, x: 0, y: 0, over: false, lastX: 0, lastY: 0 };
+function drawSand(){
+  const cw = sand.width;
+  if (!cw || !SOL) return;
+  const d = img.data;
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
+    const k = j * N + i, h = H[k];
+    const hx = H[j * N + Math.min(N - 1, i + 1)] - H[j * N + Math.max(0, i - 1)];
+    const hy = H[Math.min(N - 1, j + 1) * N + i] - H[Math.max(0, j - 1) * N + i];
+    const sh = Math.max(0.45, Math.min(1.3, 0.92 + (hx + hy) * 7));
+    d[k * 4] = (88 + 144 * h) * sh; d[k * 4 + 1] = (74 + 138 * h) * sh; d[k * 4 + 2] = (60 + 112 * h) * sh; d[k * 4 + 3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  sctx.imageSmoothingEnabled = true;
+  sctx.drawImage(off, 0, 0, cw, cw);
+  const dpr = cw / sand.clientWidth || 1;
+  sctx.strokeStyle = 'rgba(28,22,16,.42)'; sctx.lineWidth = dpr;
+  sctx.beginPath();
+  for (let k = 0; k < P.levels; k++){
+    for (const sg of march(Hs, N, N, level(k))){
+      sctx.moveTo((sg[0] + .5) / N * cw, (sg[1] + .5) / N * cw);
+      sctx.lineTo((sg[2] + .5) / N * cw, (sg[3] + .5) / N * cw);
+    }
+  }
+  sctx.stroke();
+  const E = edgeMM(), k = net.fs * cw / E;
+  const toC = (f, x, y) => { const q = faceToNet(f, x, y), p = netToSand(q[0], q[1]); return [p[0] * cw, p[1] * cw]; };
+  SOL.faces.forEach((f, idx) => {
+    const res = results[idx]; if (!res) return;
+    sctx.fillStyle = 'rgba(20,16,12,.7)';
+    sctx.beginPath();
+    for (const h of res.holes){ const q = toC(f, h.x, h.y); sctx.moveTo(q[0] + h.r * k, q[1]); sctx.arc(q[0], q[1], Math.max(0.6 * dpr, h.r * k), 0, Math.PI * 2); }
+    for (const poly of res.slots){ poly.forEach((pt, i) => { const q = toC(f, pt[0], pt[1]); i ? sctx.lineTo(q[0], q[1]) : sctx.moveTo(q[0], q[1]); }); sctx.closePath(); }
+    if (res.mountR){ const q = toC(f, res.cen[0], res.cen[1]); sctx.moveTo(q[0] + res.mountR * k, q[1]); sctx.arc(q[0], q[1], res.mountR * k, 0, Math.PI * 2); }
+    sctx.fill('evenodd');
+  });
+  sctx.lineWidth = 1.6 * dpr; sctx.strokeStyle = 'rgba(255,255,255,.95)';
+  SOL.faces.forEach(f => {
+    sctx.beginPath();
+    f.poly2.forEach((q, i) => { const p = netToSand(q[0], q[1]); i ? sctx.lineTo(p[0] * cw, p[1] * cw) : sctx.moveTo(p[0] * cw, p[1] * cw); });
+    sctx.closePath(); sctx.stroke();
+  });
+  sctx.font = `600 ${11 * dpr}px Archivo, system-ui, sans-serif`; sctx.textAlign = 'center'; sctx.textBaseline = 'middle';
+  SOL.faces.filter(f => f.top || f.bottom).forEach(f => {
+    const c = netToSand(f.cen2[0], f.cen2[1]);
+    sctx.save(); sctx.lineWidth = 3 * dpr; sctx.strokeStyle = 'rgba(30,24,18,.75)'; sctx.lineJoin = 'round';
+    sctx.strokeText(f.name, c[0] * cw, c[1] * cw + (f.top ? 0 : 0)); sctx.restore();
+    sctx.fillStyle = 'rgba(255,255,255,.95)'; sctx.fillText(f.name, c[0] * cw, c[1] * cw);
+  });
+  if (pointer.over && tool !== 'move'){
+    sctx.strokeStyle = 'rgba(255,255,255,.8)'; sctx.lineWidth = dpr; sctx.setLineDash([4 * dpr, 4 * dpr]);
+    sctx.beginPath(); sctx.arc(pointer.x * cw, pointer.y * cw, (['tetra', 'cube', 'dome'].includes(tool) ? 1.4 : ['river', 'ridge'].includes(tool) ? 0.45 : 1) * P.brush * cw, 0, Math.PI * 2); sctx.stroke();
+    sctx.setLineDash([]);
+  }
+}
+function applyBrush(x, y, dt){
+  const r = P.brush, sig = r / 2;
+  const i0 = Math.max(0, Math.floor((x - r) * N)), i1 = Math.min(N - 1, Math.ceil((x + r) * N));
+  const j0 = Math.max(0, Math.floor((y - r) * N)), j1 = Math.min(N - 1, Math.ceil((y + r) * N));
+  if (tool === 'smooth'){
+    const src = H.slice();
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++){
+      const dx = (i + .5) / N - x, dy = (j + .5) / N - y, d2 = dx * dx + dy * dy; if (d2 > r * r) continue;
+      let sum = 0, cnt = 0;
+      for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++){ const ii = i + a, jj = j + b; if (ii < 0 || jj < 0 || ii >= N || jj >= N) continue; sum += src[jj * N + ii]; cnt++; }
+      const w = Math.min(1, Math.exp(-d2 / (2 * sig * sig)) * dt * 10);
+      H[j * N + i] = src[j * N + i] * (1 - w) + (sum / cnt) * w;
+    }
+    return;
+  }
+  const amt = (tool === 'dig' ? -1 : 1) * 0.9 * dt;
+  for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++){
+    const dx = (i + .5) / N - x, dy = (j + .5) / N - y, d2 = dx * dx + dy * dy; if (d2 > r * r) continue;
+    const k = j * N + i; H[k] = Math.min(1, Math.max(0, H[k] + amt * Math.exp(-d2 / (2 * sig * sig))));
+  }
+}
+function stamp(x, y, type){
+  const R = P.brush * 1.4, hc = sampleH(x, y), A = 0.42, ri = R * 0.5;
+  const i0 = Math.max(0, Math.floor((x - R) * N)), i1 = Math.min(N - 1, Math.ceil((x + R) * N));
+  const j0 = Math.max(0, Math.floor((y - R) * N)), j1 = Math.min(N - 1, Math.ceil((y + R) * N));
+  const nrm = [[0, -1], [Math.cos(Math.PI / 6), Math.sin(Math.PI / 6)], [-Math.cos(Math.PI / 6), Math.sin(Math.PI / 6)]];
+  for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++){
+    const dx = (i + .5) / N - x, dy = (j + .5) / N - y; let v = -1;
+    if (type === 'dome'){ const d = Math.hypot(dx, dy) / R; if (d < 1) v = Math.sqrt(1 - d * d); }
+    else if (type === 'cube'){ const q = Math.max(Math.abs(dx), Math.abs(dy)) / (R * 0.8); v = q < 0.7 ? 1 : q < 1 ? (1 - q) / 0.3 : -1; }
+    else { let d = -Infinity; for (const n of nrm) d = Math.max(d, (dx * n[0] + dy * n[1]) / ri); if (d < 1) v = 1 - Math.max(0, d) * 0.999; }
+    if (v > 0){ const k = j * N + i; H[k] = Math.max(H[k], Math.min(1, hc + A * v)); }
+  }
+  stamps.push({ type, x: +x.toFixed(4), y: +y.toFixed(4), size: +R.toFixed(4) });
+}
+// River / ridge: a narrow channel or crest along the drag, capped at a set depth so going over it again doesn't dig forever.
+let lineAcc = null;
+function applyLine(x0, y0, x1, y1){
+  const r = P.brush * 0.45, sign = tool === 'ridge' ? 1 : -1, cap = P.lineDepth;
+  const len = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.ceil(len / (r * 0.2)));
+  for (let q = 0; q <= n; q++){
+    const x = x0 + (x1 - x0) * q / n, y = y0 + (y1 - y0) * q / n;
+    const i0 = Math.max(0, Math.floor((x - r) * N)), i1 = Math.min(N - 1, Math.ceil((x + r) * N));
+    const j0 = Math.max(0, Math.floor((y - r) * N)), j1 = Math.min(N - 1, Math.ceil((y + r) * N));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++){
+      const d = Math.hypot((i + .5) / N - x, (j + .5) / N - y) / r; if (d >= 1) continue;
+      const k = j * N + i, target = cap * (1 - d * d);
+      const add = Math.min(cap * 0.12, target - lineAcc[k]); if (add <= 0) continue;
+      lineAcc[k] += add; H[k] = Math.min(1, Math.max(0, H[k] + sign * add));
+    }
+  }
+}
+function insideNet(x, y){
+  if (!SOL) return false;
+  const [u, v] = sandToNet(x, y);
+  return SOL.faces.some(f => pointInPoly(f.poly2, u, v));
+}
+const posOf = e => { const r = sand.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+sand.addEventListener('pointerdown', e => {
+  sand.setPointerCapture(e.pointerId);
+  const [x, y] = posOf(e); pointer.down = true; pointer.x = x; pointer.y = y; pointer.lastX = x; pointer.lastY = y;
+  if (['tetra', 'cube', 'dome'].includes(tool)){ stamp(x, y, tool); pointer.down = false; markDirty(); }
+  if (['river', 'ridge'].includes(tool)){ lineAcc = new Float32Array(N * N); applyLine(x, y, x, y); markDirty(); }
+});
+sand.addEventListener('pointermove', e => {
+  const [x, y] = posOf(e); pointer.over = true;
+  if (pointer.down && tool === 'move'){ net.cx += x - pointer.lastX; net.cy += y - pointer.lastY; markDirty(); }
+  if (pointer.down && lineAcc && ['river', 'ridge'].includes(tool)){ applyLine(pointer.lastX, pointer.lastY, x, y); markDirty(); }
+  pointer.x = x; pointer.y = y; pointer.lastX = x; pointer.lastY = y; sandDirty = true;
+  sand.style.cursor = tool === 'move' ? (insideNet(x, y) || pointer.down ? 'grab' : 'move') : 'crosshair';
+});
+const up = () => { pointer.down = false; };
+sand.addEventListener('pointerup', up); sand.addEventListener('pointercancel', up);
+sand.addEventListener('pointerleave', () => { pointer.over = false; sandDirty = true; });
+document.querySelectorAll('[data-solid]').forEach(b => b.addEventListener('click', () => {
+  solid = b.dataset.solid;
+  document.querySelectorAll('[data-solid]').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+  readParams(); markDirty();
+}));
+document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => {
+  tool = b.dataset.tool;
+  document.querySelectorAll('[data-tool]').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+}));
+
+/* ---------- 3D preview ---------- */
+const host = $('three');
+let renderer = null, scene, camera, controls, lampBody, light, hemi, bulbMesh, socket, cord;
+let needsRender = true, faceMeshes = [];
+function initThree(){
+  if (!window.THREE){ host.innerHTML = '<p class="hint" style="color:#ccc;padding:16px">3D preview could not load. The sandbox and cut sheet still work.</p>'; return; }
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+  host.appendChild(renderer.domElement);
+  scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0b0c);
+  camera = new THREE.PerspectiveCamera(55, 1, 0.01, 30); camera.position.set(0.95, 1.15, 1.2);
+  if (THREE.OrbitControls){
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.45, 0); controls.maxDistance = 1.55; controls.minDistance = 0.28;
+    controls.addEventListener('change', () => { needsRender = true; }); controls.update();
+  } else camera.lookAt(0, 1.45, 0);
+  const roomMat = new THREE.MeshStandardMaterial({ color: 0xd9d5cc, roughness: 1 });
+  const plane = (w, h, pos, rot) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), roomMat); m.position.set(...pos); m.rotation.set(...rot); m.receiveShadow = true; scene.add(m); };
+  plane(4, 4, [0, 0, 0], [-Math.PI / 2, 0, 0]);
+  plane(4, 2.8, [0, 1.4, -1.6], [0, 0, 0]);
+  plane(4, 2.8, [-1.7, 1.4, 0], [0, Math.PI / 2, 0]);
+  plane(4, 2.8, [1.7, 1.4, 0], [0, -Math.PI / 2, 0]);
+  plane(4, 2.8, [0, 1.4, 1.9], [0, Math.PI, 0]);
+  plane(4, 4, [0, 2.8, 0], [Math.PI / 2, 0, 0]);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.035));
+  hemi = new THREE.HemisphereLight(0xffffff, 0x555555, 0); scene.add(hemi);
+  const lamp = new THREE.Group(); lamp.position.set(0, 1.45, 0); scene.add(lamp);
+  light = new THREE.PointLight(0xffd6a0, 1.3, 0, 1);
+  light.castShadow = true; light.shadow.mapSize.set(2048, 2048);
+  light.shadow.camera.near = 0.004; light.shadow.camera.far = 6; light.shadow.bias = -0.0015;
+  lamp.add(light);
+  bulbMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshBasicMaterial({ color: 0xfff0d2 }));
+  lamp.add(bulbMesh);
+  const dark = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: .6 });
+  socket = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.06, 20), dark); socket.castShadow = true; lamp.add(socket);
+  cord = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 1, 8), dark); lamp.add(cord);
+  lampBody = new THREE.Group(); lamp.add(lampBody);
+  new ResizeObserver(resize3D).observe(host); resize3D();
+}
+// (Re)build one mesh per face of the current solid, each with its own canvas texture for the cut pattern.
+function buildMeshes(){
+  if (!renderer) return;
+  faceMeshes.forEach(o => { lampBody.remove(o.mesh); o.mesh.geometry.dispose(); o.mesh.material.dispose(); o.mesh.customDistanceMaterial.dispose(); o.tex.dispose(); });
+  faceMeshes = SOL.faces.map(f => {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 512;
+    const tex = new THREE.CanvasTexture(cv); tex.flipY = false; tex.anisotropy = 4;
+    const pos = [], uv = [], idx = [];
+    f.v3.forEach((p, i) => { pos.push(p[0], p[1], p[2]); uv.push((f.poly2[i][0] - f.origin[0]) / f.dim, (f.poly2[i][1] - f.origin[1]) / f.dim); });
+    for (let i = 1; i < f.v3.length - 1; i++) idx.push(0, i, i + 1);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    geo.setIndex(idx); geo.computeVertexNormals();
+    const mat = new THREE.MeshStandardMaterial({ color: 0xf2ede3, roughness: .85, side: THREE.DoubleSide, alphaMap: tex, alphaTest: .5, emissive: 0xffb36b, emissiveIntensity: 0 });
+    const mesh = new THREE.Mesh(geo, mat); mesh.castShadow = true;
+    mesh.customDistanceMaterial = new THREE.MeshDistanceMaterial({ alphaMap: tex, alphaTest: .5, side: THREE.DoubleSide });
+    lampBody.add(mesh);
+    return { cv, tex, mesh };
+  });
+}
+function resize3D(){
+  if (!renderer) return;
+  const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); needsRender = true;
+}
+function update3D(){
+  if (!renderer) return;
+  const E = edgeMM(), em = E / 1000, topY = SOL.inr * em;
+  lampBody.scale.setScalar(em);
+  socket.position.set(0, topY - 0.012, 0);
+  const cl = 2.8 - 1.45 - topY; cord.scale.set(1, cl, 1); cord.position.set(0, topY + cl / 2, 0);
+  bulbMesh.scale.setScalar(Math.max(0.004, P.bulb / 2000 * 1.6));
+  light.shadow.radius = 1 + P.bulb * 0.9;
+  hemi.intensity = $('roomLights').checked ? 0.6 : 0;
+  const tr = $('translucent').checked ? 0.22 : 0;
+  SOL.faces.forEach((f, idx) => {
+    const o = faceMeshes[idx], res = results[idx]; if (!o || !res) return;
+    o.mesh.material.emissiveIntensity = tr;
+    const ctx = o.cv.getContext('2d'), k = o.cv.width / (f.dim * E);
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, o.cv.width, o.cv.height);
+    ctx.fillStyle = '#000'; ctx.beginPath();
+    for (const h of res.holes){ ctx.moveTo((h.x + h.r) * k, h.y * k); ctx.arc(h.x * k, h.y * k, h.r * k, 0, Math.PI * 2); }
+    for (const poly of res.slots){ poly.forEach((pt, i) => i ? ctx.lineTo(pt[0] * k, pt[1] * k) : ctx.moveTo(pt[0] * k, pt[1] * k)); ctx.closePath(); }
+    if (res.mountR){ ctx.moveTo((res.cen[0] + res.mountR) * k, res.cen[1] * k); ctx.arc(res.cen[0] * k, res.cen[1] * k, res.mountR * k, 0, Math.PI * 2); }
+    ctx.fill('evenodd');
+    o.tex.needsUpdate = true;
+  });
+  needsRender = true;
+}
+
+/* ---------- cut sheet ---------- */
+function buildSheet(){
+  const E = edgeMM(), td = Math.min(12, E * 0.12);
+  const faces = SOL.faces.map(f => ({ f, P: f.poly2.map(q => [q[0] * E, q[1] * E]), c: [f.cen2[0] * E, f.cen2[1] * E] }));
+  const groups = new Map();
+  faces.forEach(F => F.f.vids.forEach((a, k) => {
+    const b = F.f.vids[(k + 1) % F.f.vids.length], key = SOL.ekey(a, b);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push({ F, p: F.P[k], q: F.P[(k + 1) % F.P.length], key });
+  }));
+  const score = [], cut = [], text = [], tabs = [], warn = [];
+  let seam = 0;
+  const f2 = v => v.toFixed(2);
+  const lineD = (p, q) => `M${f2(p[0])} ${f2(p[1])}L${f2(q[0])} ${f2(q[1])}`;
+  const outward = e => { const mx = (e.p[0] + e.q[0]) / 2 - e.F.c[0], my = (e.p[1] + e.q[1]) / 2 - e.F.c[1], l = Math.hypot(mx, my); return [mx / l, my / l]; };
+  const tabPoly = (e, depth, ratio) => {
+    const len = Math.hypot(e.q[0] - e.p[0], e.q[1] - e.p[1]), dir = [(e.q[0] - e.p[0]) / len, (e.q[1] - e.p[1]) / len], n = outward(e);
+    const ins = Math.min(depth * ratio, len * 0.42);
+    return [e.p, [e.p[0] + dir[0] * ins + n[0] * depth, e.p[1] + dir[1] * ins + n[1] * depth], [e.q[0] - dir[0] * ins + n[0] * depth, e.q[1] - dir[1] * ins + n[1] * depth], e.q];
+  };
+  const clear = T => !faces.some(F => convexOverlap(F.P, T)) && !tabs.some(U => convexOverlap(U, T));
+  const label = (e, n, onTab) => {
+    const mx = (e.p[0] + e.q[0]) / 2, my = (e.p[1] + e.q[1]) / 2, o = outward(e);
+    const d = onTab ? td * 0.5 : -Math.min(5, P.margin * 0.6);
+    text.push(`<text x="${f2(mx + o[0] * d)}" y="${f2(my + o[1] * d + 1.3)}">${n}</text>`);
+  };
+  for (const g of groups.values()){
+    if (g.length === 2 && SOL.folds.has(g[0].key)){ score.push(lineD(g[0].p, g[0].q)); continue; }
+    if (g.length === 2){
+      seam++;
+      let done = false;
+      for (const [depth, ratio] of [[td, 0.9], [td, 1.6], [td * 0.6, 1.6], [td * 0.4, 2]]){
+        for (const [a, b] of [[g[0], g[1]], [g[1], g[0]]]){
+          const T = tabPoly(a, depth, ratio);
+          if (!clear(T)) continue;
+          tabs.push(T); score.push(lineD(a.p, a.q));
+          cut.push('M' + T.map(q => f2(q[0]) + ' ' + f2(q[1])).join('L'));
+          cut.push(lineD(b.p, b.q)); label(a, seam, true); label(b, seam, false);
+          done = true; break;
+        }
+        if (done) break;
+      }
+      if (!done){ cut.push(lineD(g[0].p, g[0].q), lineD(g[1].p, g[1].q)); label(g[0], seam, false); label(g[1], seam, false); warn.push(seam); }
+      continue;
+    }
+    g.forEach(e => cut.push(lineD(e.p, e.q)));
+  }
+  const inner = [];
+  faces.forEach((F, idx) => {
+    const res = results[idx]; if (!res) return;
+    const ox = F.f.origin[0] * E, oy = F.f.origin[1] * E;
+    for (const h of res.holes) inner.push(`<circle cx="${f2(ox + h.x)}" cy="${f2(oy + h.y)}" r="${f2(h.r)}"/>`);
+    for (const poly of res.slots) inner.push(`<path d="M${poly.map(p => f2(ox + p[0]) + ' ' + f2(oy + p[1])).join('L')}Z"/>`);
+    if (res.mountR) inner.push(`<circle cx="${f2(ox + res.cen[0])}" cy="${f2(oy + res.cen[1])}" r="${f2(res.mountR)}"/>`);
+  });
+  const bb = bboxOf([...faces.map(F => F.P), ...tabs]), pad = 4;
+  const vx = bb[0] - pad, vy = bb[1] - pad, vw = bb[2] - bb[0] + 2 * pad, vh = bb[3] - bb[1] + 2 * pad;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${vw.toFixed(1)}mm" height="${vh.toFixed(1)}mm" viewBox="${f2(vx)} ${f2(vy)} ${f2(vw)} ${f2(vh)}">
+<title>ARAIS lamp cut sheet, ${SOLIDS[SOL.type].name.toLowerCase()} ${P.size} mm, ${P.thick} mm sheet</title>
+<g id="score" fill="none" stroke="#0000ff" stroke-width="0.1" stroke-dasharray="3 2"><path d="${score.join('')}"/></g>
+<g id="cut-inner" fill="none" stroke="#ff0000" stroke-width="0.1">${inner.join('')}</g>
+<g id="cut-outer" fill="none" stroke="#ff0000" stroke-width="0.1"><path d="${cut.join('')}"/></g>
+<g id="engrave" fill="#000000" stroke="none" font-family="Arial, sans-serif" font-size="3.6" text-anchor="middle">${text.join('')}</g>
+</svg>`;
+  return { svg, w: vw, h: vh, cuts: inner.length, untabbed: warn };
+}
+
+/* ---------- checks ---------- */
+function updateChecks(sheet){
+  const tb = $('checkBody'); tb.innerHTML = '';
+  SOL.faces.forEach((f, idx) => {
+    const res = results[idx]; if (!res) return;
+    const n = res.holes.length + res.slots.length, pct = res.open * 100;
+    let st = '<span class="pill ok">ok</span>';
+    if (pct > 40) st = '<span class="pill warn">too open</span>';
+    else if (n === 0) st = '<span class="pill warn">no cuts</span>';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${f.name}</td><td class="num">${n}</td><td class="num">${pct.toFixed(1)}%</td><td>${st}</td>`;
+    tb.appendChild(tr);
+  });
+  const w = [], E = edgeMM();
+  const fits = (sheet.w <= P.bedW && sheet.h <= P.bedH) || (sheet.w <= P.bedH && sheet.h <= P.bedW);
+  if (!fits) w.push(`Net is ${sheet.w.toFixed(0)} × ${sheet.h.toFixed(0)} mm and does not fit a ${P.bedW} × ${P.bedH} mm sheet. Reduce the overall size.`);
+  const clearance = SOL.inr * E - 25;
+  if (clearance < 40) w.push(`Panels sit ${(SOL.inr * E).toFixed(0)} mm from the bulb centre, leaving ${clearance.toFixed(0)} mm around a small (50 mm) LED bulb. Aim for 40 mm: make the lamp larger.`);
+  const top = SOL.faces.find(f => f.top), topP = faceLocalPoly(top), tc = centroid2(topP);
+  let inR = Infinity; for (let i = 0; i < topP.length; i++){ const a = topP[i], b = topP[(i + 1) % topP.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); inR = Math.min(inR, Math.abs((b[0] - a[0]) * (a[1] - tc[1]) - (a[0] - tc[0]) * (b[1] - a[1])) / L); }
+  if (P.mount / 2 + P.margin > inR) w.push('Socket hole is too large for the top face. Make the lamp larger or the hole smaller.');
+  if (P.openBottom && SOL.type === 'tetra') w.push('A tetrahedron stands on a point, so it has no bottom face to leave open.');
+  if (sheet.untabbed.length) w.push(`Seam${sheet.untabbed.length > 1 ? 's' : ''} ${sheet.untabbed.join(', ')} had no room for a glue tab; tape those edges.`);
+  if (!SOL.complete) w.push('This net could not be unfolded without overlaps.');
+  const ul = $('warnings'); ul.innerHTML = '';
+  if (!w.length){ const li = document.createElement('li'); li.className = 'ok'; li.textContent = 'Fits the sheet, clears the bulb, every face within 40% open.'; ul.appendChild(li); }
+  w.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+  $('sheetSize').textContent = `${SOLIDS[SOL.type].name} · edge ${E.toFixed(0)} mm · sheet ${sheet.w.toFixed(0)} × ${sheet.h.toFixed(0)} mm · ${sheet.cuts} cuts`;
+}
+
+/* ---------- recompute ---------- */
+let dirty = true, sandDirty = true, lastCompute = 0, lastSheet = null, solidKey = '';
+function markDirty(){ dirty = true; sandDirty = true; }
+function recompute(){
+  const key = P.solid + (P.openBottom ? '-open' : '');
+  if (key !== solidKey){ solidKey = key; SOL = buildSolid(P.solid, P.openBottom); buildMeshes(); }
+  net.fs = P.netZoom / Math.max(SOL.w, SOL.h);
+  smoothField(P.smooth);
+  results = SOL.faces.map(f => computeFace(f));
+  lastSheet = buildSheet();
+  $('sheet').innerHTML = lastSheet.svg;
+  updateChecks(lastSheet);
+  update3D();
+  sandDirty = true;
+}
+let last = performance.now();
+function tick(now){
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (pointer.down && ['raise', 'dig', 'smooth'].includes(tool)){ applyBrush(pointer.x, pointer.y, dt); markDirty(); }
+  if (dirty && now - lastCompute > (pointer.down ? 120 : 40)){ dirty = false; lastCompute = now; recompute(); }
+  if (sandDirty){ sandDirty = false; drawSand(); }
+  if (renderer && needsRender){ needsRender = false; renderer.render(scene, camera); }
+  requestAnimationFrame(tick);
+}
+function resizeSand(){
+  const dpr = Math.min(2, window.devicePixelRatio || 1), w = Math.round(sand.clientWidth * dpr);
+  if (w && sand.width !== w){ sand.width = w; sand.height = w; sandDirty = true; }
+}
+
+/* ---------- inputs ---------- */
+document.querySelectorAll('input[type=range],select,input[type=checkbox],input[type=number]').forEach(el => {
+  if (el.id === 'hmFile') return;
+  el.addEventListener('input', () => { readParams(); markDirty(); });
+});
+$('randomBtn').addEventListener('click', () => { randomTerrain(Math.floor(Math.random() * 1e9)); markDirty(); });
+$('flatBtn').addEventListener('click', () => { H.fill(0.3); stamps.length = 0; markDirty(); });
+$('hmFile').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file), im = new Image();
+  im.onload = () => {
+    const c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d');
+    x.drawImage(im, 0, 0, N, N); const d = x.getImageData(0, 0, N, N).data;
+    for (let k = 0; k < N * N; k++) H[k] = (0.299 * d[k * 4] + 0.587 * d[k * 4 + 1] + 0.114 * d[k * 4 + 2]) / 255;
+    stamps.length = 0; URL.revokeObjectURL(url); markDirty(); toast('Heightmap loaded: light is high, dark is low.');
+  };
+  im.onerror = () => toast('That file could not be read as an image.');
+  im.src = url; e.target.value = '';
+});
+
+/* ---------- downloads ---------- */
+let dl = null;
+if (window.claude && typeof window.claude.use === 'function'){ window.claude.use('downloads').then(d => { dl = d; }).catch(() => {}); }
+let toastT = 0;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
+async function offer(filename, data, label){
+  if (dl){
+    try { await dl.save({ filename, data }); toast(`Saved ${filename}`); return; }
+    catch (e){ if (e && e.code === 'declined'){ toast('Save cancelled'); return; } if (e && e.code === 'rate_limited'){ toast('A save prompt is already open'); return; } }
+  }
+  try { await navigator.clipboard.writeText(data); toast(`Downloads aren't available here, so the ${label} was copied to your clipboard.`); }
+  catch { toast(`Downloads aren't available in this view.`); }
+}
+$('svgBtn').addEventListener('click', () => { if (!lastSheet) return; offer(`arais-lamp-${P.solid}-${P.size}mm.svg`, lastSheet.svg, 'SVG'); });
+$('jsonBtn').addEventListener('click', () => {
+  const data = {
+    format: 'arais-lamp-design', version: 1,
+    heightfield: { n: N, values: Array.from(H, v => +v.toFixed(3)) },
+    shapes: stamps,
+    solid: P.solid,
+    net_placement: { cx: +net.cx.toFixed(4), cy: +net.cy.toFixed(4), rotation_deg: P.netRot, site_fraction: P.netZoom },
+    lamp: { overall_size_mm: P.size, edge_mm: +edgeMM().toFixed(2), open_bottom: P.openBottom, socket_hole_mm: P.mount },
+    material: { thickness_mm: P.thick, margin_mm: P.margin },
+    pattern: { type: 'flowlines', light_from_deg: P.light, density: P.density, length: P.length, fixed: FIXED }
+  };
+  offer('arais-lamp-design.json', JSON.stringify(data), 'design JSON');
+});
+
+/* ---------- start ---------- */
+readParams();
+randomTerrain(20261029);
+new ResizeObserver(resizeSand).observe(sand); resizeSand();
+try { initThree(); } catch (err){ renderer = null; host.innerHTML = '<p class="hint" style="color:#ccc;padding:16px">3D preview is not available on this device. The sandbox and cut sheet still work.</p>'; }
+requestAnimationFrame(tick);
+})();
+</script>
+
+</body></html>
